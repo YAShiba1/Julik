@@ -5,25 +5,26 @@ public class Signaling : MonoBehaviour
 {
     [SerializeField] private AudioSource _audioSource;
 
-    private float _targetVolume;
-    private float _volumeSpeed = 0.2f;
+    private float _volumeSpeed = 0.4f;
     private Coroutine _changeVolumeJob;
 
     public void IncreaseVolume()
     {
-        if (_changeVolumeJob != null)
-        {
-            StopCoroutine(_changeVolumeJob);
-        }
+        float maxVolume = 1f;
 
-        _targetVolume = 1;
+        StopVolumeCoroutine();
+
         _audioSource.Play();
-        _changeVolumeJob = StartCoroutine(ChangeSoundVolume());
+        _changeVolumeJob = StartCoroutine(ChangeSoundVolume(maxVolume));
     }
 
     public void DecreaseVolume()
     {
-        _targetVolume = 0;
+        float minVolume = 0;
+
+        StopVolumeCoroutine();
+
+        _changeVolumeJob = StartCoroutine(ChangeSoundVolume(minVolume));
     }
 
     private void Start()
@@ -31,17 +32,25 @@ public class Signaling : MonoBehaviour
         _audioSource.volume = 0;
     }
 
-    private IEnumerator ChangeSoundVolume()
+    private IEnumerator ChangeSoundVolume(float targetVolume)
     {
-        while (_audioSource.volume != _targetVolume)
+        while (_audioSource.volume != targetVolume)
         {
-            _audioSource.volume = Mathf.MoveTowards(_audioSource.volume, _targetVolume, _volumeSpeed * Time.deltaTime);
+            _audioSource.volume = Mathf.MoveTowards(_audioSource.volume, targetVolume, _volumeSpeed * Time.deltaTime);
             yield return null;
         }
 
-        if (_targetVolume == 0)
+        if (targetVolume == 0)
         {
             _audioSource.Stop();
+        }
+    }
+
+    private void StopVolumeCoroutine()
+    {
+        if (_changeVolumeJob != null)
+        {
+            StopCoroutine(_changeVolumeJob);
         }
     }
 }
